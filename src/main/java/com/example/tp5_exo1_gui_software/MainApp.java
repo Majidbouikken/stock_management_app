@@ -1,13 +1,9 @@
 package com.example.tp5_exo1_gui_software;
 
-import com.example.tp5_exo1_gui_software.adapters.ProductAdapter;
-import com.example.tp5_exo1_gui_software.adapters.UserAdapter;
 import com.example.tp5_exo1_gui_software.config.GsonSingleton;
 import com.example.tp5_exo1_gui_software.models.Product;
 import com.example.tp5_exo1_gui_software.models.User;
 import com.example.tp5_exo1_gui_software.screens.LoginScreen;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.FileReader;
