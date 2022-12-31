@@ -1,8 +1,10 @@
 package com.example.tp5_exo1_gui_software.screens;
 
 import com.example.tp5_exo1_gui_software.config.AppConfig;
+import com.example.tp5_exo1_gui_software.config.GsonSingleton;
 import com.example.tp5_exo1_gui_software.models.Product;
 import com.example.tp5_exo1_gui_software.models.User;
+import com.google.gson.reflect.TypeToken;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -10,8 +12,12 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Objects;
 
 public class MenuScreen extends JFrame {
@@ -25,6 +31,7 @@ public class MenuScreen extends JFrame {
         // Preparing the window
         setSize(config.WINDOW_WIDTH, config.WINDOW_HEIGHT);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setTitle("Product Management App");
 
         // Menubar dans le haut pour afficher un message d'accueil pour l'utilisateur
         // et lui offrir un menu pour se déconnecter ou quitter
@@ -150,8 +157,16 @@ public class MenuScreen extends JFrame {
                         LocalDate expirationDate = LocalDate.parse(dateField.getText(), DateTimeFormatter.ISO_DATE);
 
                         // Ajouter le nouveau produit dans le Repository
-                        Product product = new Product(id, name, price, expirationDate);
-                        addProduct(product);
+                        Product product = new Product();
+                        product.setId(id);
+                        product.setName(name);
+                        product.setPrice(price);
+                        product.setExpirationDate(expirationDate);
+                        try {
+                            addProduct(product);
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
 
                         // Fermer le dialogue
                         dialog.dispose();
@@ -169,7 +184,11 @@ public class MenuScreen extends JFrame {
                 String id = JOptionPane.showInputDialog(MenuScreen.this, "Enter the ID of the product:");
 
                 // Delete the product
-                deleteProduct(id);
+                try {
+                    deleteProduct(id);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
             }
         };
         Action updateAction = new AbstractAction("\uD83D\uDCDD  Update an existing Product") {
@@ -233,13 +252,22 @@ public class MenuScreen extends JFrame {
                         String name = nameField.getText();
                         double price = Double.parseDouble(priceField.getText());
                         LocalDate expirationDate = LocalDate.parse(dateField.getText(), DateTimeFormatter.ISO_DATE);
-
                         // Update the product's details
                         product.setId(id);
                         product.setName(name);
                         product.setPrice(price);
                         product.setExpirationDate(expirationDate);
-
+                        // On met à jours le fichier Json qui stock les produits
+                        String updatedJsonString = GsonSingleton.getInstance().toJson(Product.repository, new TypeToken<List<Product>>() {
+                        }.getType());
+                        BufferedWriter writer = null;
+                        try {
+                            writer = new BufferedWriter(new FileWriter(GsonSingleton.currentDir + "\\data\\repository.json"));
+                            writer.write(updatedJsonString);
+                            writer.close();
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
                         // Fermer le dialogue
                         dialog.dispose();
                     }
@@ -333,18 +361,25 @@ public class MenuScreen extends JFrame {
     }
 
     // Ajouter un Produit
-    private void addProduct(Product product) {
+    private void addProduct(Product product) throws IOException {
         for (Product p : Product.repository) {
             if (p.getId().equals(product.getId())) {
                 // If a product with the same ID already exists, throw an exception
                 throw new ProductAlreadyExistsException("Product already exists!");
             }
         }
+        // On met à jours la liste statique des produits
         Product.repository.add(product);
+        // Ainsi que le fichier Json qui stock les produits
+        String updatedJsonString = GsonSingleton.getInstance().toJson(Product.repository, new TypeToken<List<Product>>() {
+        }.getType());
+        BufferedWriter writer = new BufferedWriter(new FileWriter(GsonSingleton.currentDir + "\\data\\repository.json"));
+        writer.write(updatedJsonString);
+        writer.close();
     }
 
     // Supprimer un Produit
-    private void deleteProduct(String id) {
+    private void deleteProduct(String id) throws IOException {
         Product product = getProduct(id);
         // Vérifier si l'utilisateur a cliqué sur OK
         if (id != null) {
@@ -355,6 +390,12 @@ public class MenuScreen extends JFrame {
             }
         }
         Product.repository.remove(product);
+        // Ainsi que le fichier Json qui stock les produits
+        String updatedJsonString = GsonSingleton.getInstance().toJson(Product.repository, new TypeToken<List<Product>>() {
+        }.getType());
+        BufferedWriter writer = new BufferedWriter(new FileWriter(GsonSingleton.currentDir + "\\data\\repository.json"));
+        writer.write(updatedJsonString);
+        writer.close();
     }
 
     // Fetch Produit par son ID

@@ -20,7 +20,8 @@ public class AppConfig {
     public final Color TEXT_COLOR = Color.decode("0xecf0f1");
     public final Color BTN_COLOR = Color.decode("0x2ecc71");
 
-    private AppConfig() {}
+    private AppConfig() {
+    }
 
     public static AppConfig getInstance() {
         if (instance == null) {

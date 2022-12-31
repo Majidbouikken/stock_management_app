@@ -1,13 +1,20 @@
 package com.example.tp5_exo1_gui_software.screens;
 
 import com.example.tp5_exo1_gui_software.config.AppConfig;
+import com.example.tp5_exo1_gui_software.config.GsonSingleton;
+import com.example.tp5_exo1_gui_software.models.Product;
 import com.example.tp5_exo1_gui_software.models.User;
+import com.google.gson.reflect.TypeToken;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.List;
 
 public class LoginScreen extends JFrame {
     //private final JPanel signupPanel;
@@ -15,11 +22,11 @@ public class LoginScreen extends JFrame {
     public LoginScreen() {
         // Get the AppConfig Singleton
         AppConfig config = AppConfig.getInstance();
-
         // Preparing the window
         setSize(config.LOGIN_WINDOW_WIDTH, config.LOGIN_WINDOW_HEIGHT);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBackground(config.TEXT_COLOR);
+        setTitle("Authentication");
 
         // Layout Manager
         setLayout(new BorderLayout());
@@ -35,7 +42,6 @@ public class LoginScreen extends JFrame {
         // universityLogo.setSize(20, 20);
         // headerPanel.add(universityLogo);
         headerPanel.add(titlePanel);
-
         // Form Panel (Email and Password)
         JLabel emailLabel = new JLabel("\uD83D\uDC64 Email :");
         JLabel passwordLabel = new JLabel("\uD83D\uDD12 Password :");
@@ -48,7 +54,6 @@ public class LoginScreen extends JFrame {
         passwordLabel.setForeground(config.BG_COLOR);
         emailField.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, config.NORMAL_FONT_SIZE));
         passwordField.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, config.NORMAL_FONT_SIZE));
-
         // Login and Signup Buttons
         JButton loginButton = new JButton("LOGIN");
         JButton signButton = new JButton("SIGNUP");
@@ -63,7 +68,6 @@ public class LoginScreen extends JFrame {
         signButton.setPreferredSize(new Dimension(buttonWidth, 40));
         signButton.setBackground(config.BTN_COLOR);
         signButton.setBorder(new EmptyBorder(config.SMALL_PADDING, 144, config.SMALL_PADDING, 145));
-
         // Align everything
         headerPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         emailLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -72,11 +76,9 @@ public class LoginScreen extends JFrame {
         passwordField.setAlignmentX(Component.LEFT_ALIGNMENT);
         loginButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         signButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-
         // Form Panel
         JPanel formPanel = new JPanel();
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
-
         formPanel.add(headerPanel);
         formPanel.add(Box.createVerticalStrut(config.SMALL_PADDING));
         formPanel.add(emailLabel);
@@ -90,7 +92,6 @@ public class LoginScreen extends JFrame {
         formPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
         formPanel.add(Box.createVerticalStrut(config.SMALL_PADDING));
         formPanel.add(signButton);
-
         // Wrapping everything inside a Content Panel
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.PAGE_AXIS));
@@ -130,11 +131,10 @@ public class LoginScreen extends JFrame {
                 JDialog dialog = new JDialog(LoginScreen.this, "Create User", true);
                 dialog.setSize(config.LOGIN_WINDOW_WIDTH, config.LOGIN_WINDOW_HEIGHT);
                 dialog.setLocationRelativeTo(LoginScreen.this);
-
+                dialog.setTitle("Authentication");
                 // Create a panel to hold the fields
                 JPanel panel = new JPanel(new GridLayout(11, 1));
                 panel.setBorder(new EmptyBorder(config.SMALL_FONT_SIZE, config.SMALL_PADDING, config.SMALL_PADDING, config.SMALL_PADDING));
-
                 // Add the fields to the panel
                 panel.add(new JLabel("Fullname :"));
                 JTextField nameField = new JTextField();
@@ -153,7 +153,7 @@ public class LoginScreen extends JFrame {
                 panel.add(Box.createVerticalStrut(config.SMALL_PADDING));
                 panel.add(new JSeparator(SwingConstants.HORIZONTAL));
 
-                // Create the "Create" button
+                // CREATE ACCOUNT button
                 JButton createButton = new JButton("CREATE ACCOUNT");
                 createButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, config.NORMAL_FONT_SIZE));
                 createButton.setForeground(config.TEXT_COLOR);
@@ -163,28 +163,33 @@ public class LoginScreen extends JFrame {
                 createButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        // Get the user input
                         String name = nameField.getText();
                         int age = Integer.parseInt(ageField.getText());
                         String email = emailField.getText();
                         String password = passwordField.getText();
-
-                        // Create a new user with the input
-                        User user = new User(name, age, email, password);
-
-                        // Add the user to the list
+                        // Création du nouveau utilisateur
+                        User user = new User();
+                        user.setName(name);
+                        user.setAge(age);
+                        user.setEmail(email);
+                        user.setPassword(password);
+                        // On ajout l'utilisateur créé dans la liste statique des utilisateurs
                         User.users.add(user);
-
-                        // Close the dialog
+                        // Ainsi que le fichier Json qui stock les utilisateurs
+                        String updatedJsonString = GsonSingleton.getInstance().toJson(User.users, new TypeToken<List<User>>() {
+                        }.getType());
+                        try {
+                            BufferedWriter writer = new BufferedWriter(new FileWriter(GsonSingleton.currentDir + "\\data\\users.json"));
+                            writer.write(updatedJsonString);
+                            writer.close();
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
                         dialog.dispose();
                     }
                 });
                 panel.add(createButton);
-
-                // Add the panel to the dialog
                 dialog.add(panel);
-
-                // Show the dialog
                 dialog.setVisible(true);
             }
         });

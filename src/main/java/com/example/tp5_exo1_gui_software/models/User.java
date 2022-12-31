@@ -3,21 +3,26 @@ package com.example.tp5_exo1_gui_software.models;
 import java.util.ArrayList;
 import java.util.Random;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
+
 // Modèle de donnée d'un User
 public class User {
-    private long id;
+    @Expose
+    private String id;
+    @Expose
     private String name;
+    @Expose
     private int age;
+    @Expose
     private String email;
+    @Expose
     private String password;
     public static ArrayList<User> users = new ArrayList<>();
 
-    public User(String name, int age, String email, String password) {
-        this.id = generateId();
-        this.name = name;
-        this.age = age;
-        this.email = email;
-        this.password = password;
+    public User() {
+        this.id = Long.toString(generateId());
     }
 
     // Méthode pour s'authentifier
@@ -33,26 +38,26 @@ public class User {
     public static long generateId() {
         Random random = new Random();
         long id = random.nextLong();
-        while (getUserById(id) != null) {
+        while (getUserById(Long.toString(id)) != null) {
             id = random.nextLong();
         }
         return id;
     }
 
-    public static User getUserById(long id) {
+    public static User getUserById(String id) {
         for (User user : users) {
-            if (user.id == id) {
+            if (user.id.equals(id)) {
                 return user;
             }
         }
         return null;
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

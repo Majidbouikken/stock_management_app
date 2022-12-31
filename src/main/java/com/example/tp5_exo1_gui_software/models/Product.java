@@ -1,24 +1,28 @@
 package com.example.tp5_exo1_gui_software.models;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 // Modèle de donnée d'un Produit
 public class Product {
+    @Expose
     private String id;
+    @Expose
     private String name;
+    @Expose
     private double price;
+    @Expose
+    @SerializedName("expiration_date")
     private LocalDate expirationDate;
 
     // Repository des produits
-    public static final List<Product> repository = new ArrayList<>();
+    public static List<Product> repository = new ArrayList<>();
 
-    public Product(String id, String name, double price, LocalDate expirationDate) {
-        this.id = id;
-        this.name = name;
-        this.price = price;
-        this.expirationDate = expirationDate;
+    public Product() {
     }
 
     public String getId() {
